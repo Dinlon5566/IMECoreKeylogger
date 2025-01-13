@@ -2,4 +2,4 @@
 
 bool IMELoggerMain();
 bool injectProcessMain();
-DWORD WINAPI injectedProcessMainThread(LPVOID lpParam);
+DWORD WINAPI injectedProcessMainThread(LPVOID);

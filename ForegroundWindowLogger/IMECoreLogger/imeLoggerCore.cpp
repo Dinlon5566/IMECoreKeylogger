@@ -123,7 +123,6 @@ bool IMELoggerMain() {
 
 bool injectProcessMain() {
 	DWORD currentPID = GetCurrentProcessId();
-	DEBUGlogger(L"injectProcessMain Start\n");
 	IMEKeyInputlogger(L"\ninjectProcessMain Start\n");
 	IMEKeyInputlogger(std::to_wstring(currentPID).c_str());
 

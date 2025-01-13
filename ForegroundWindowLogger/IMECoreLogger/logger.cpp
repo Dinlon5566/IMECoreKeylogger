@@ -69,10 +69,15 @@ void Logger::closeAll() {
 // Initialize logger globally
 void initializeLogger() {
     wchar_t dllPath[MAX_PATH];
-    if (GetModuleFileNameW(NULL, dllPath, MAX_PATH)) {
+    if (getDLLPath(dllPath)) {
         if (!Logger::getInstance().initialize(dllPath)) {
-            // Handle error
+            if (DEBUG)
+                MessageBoxW(NULL, L"Fail to initialize Logger", L"initializeLogger", MB_OK);
         }
+    }
+    else {
+        if (DEBUG)
+            MessageBoxW(NULL, L"Fail to get DLL path", L"initializeLogger", MB_OK);
     }
 }
 
@@ -87,6 +92,6 @@ void DEBUGlogger(const std::wstring& message) {
 }
 
 void IMEKeyInputlogger(const std::wstring& message) {
-	Logger::getInstance().setLogFile(L"IMEKeylogger.txt");
-	Logger::getInstance().log(L"IMEKeylogger.txt", message);
+	Logger::getInstance().setLogFile(L"IMEKeyInputlogger.txt");
+	Logger::getInstance().log(L"IMEKeyInputlogger.txt", message);
 }
