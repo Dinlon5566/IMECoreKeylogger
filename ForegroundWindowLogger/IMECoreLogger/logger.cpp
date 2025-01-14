@@ -1,7 +1,9 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "util.h"
 #include "logger.h"
 #include <windows.h>
+#include <codecvt>
+#include <locale>
 
 // Static instance of Logger
 Logger& Logger::getInstance() {
@@ -27,22 +29,44 @@ bool Logger::initialize(const wchar_t* dllPath) {
     directory = path.substr(0, pos + 1);
     return true;
 }
-
-// Set log file
 bool Logger::setLogFile(const std::wstring& logName) {
     std::lock_guard<std::mutex> lock(mtx);
 
     if (logFiles.find(logName) == logFiles.end()) {
         std::wstring fullPath = directory + logName;
-        std::wofstream* ofs = new std::wofstream(fullPath, std::ios::app);
+
+        {
+            std::ifstream checkFile(fullPath, std::ios::binary);
+            if (!checkFile.good()) {
+                std::wofstream createFile(fullPath, std::ios::binary | std::ios::out);
+                if (createFile.is_open()) {
+                    createFile.imbue(std::locale(std::locale::empty(),
+                        new std::codecvt_utf16<wchar_t, 0x10ffff, std::little_endian>()));
+                    //  BOM
+                    wchar_t bom = 0xFEFF;
+                    createFile.write(&bom, 1);
+                }
+            }
+        }
+
+        std::wofstream* ofs = new std::wofstream(fullPath,
+            std::ios::binary | std::ios::app);
         if (!ofs->is_open()) {
             delete ofs;
             return false;
         }
+
+        ofs->imbue(std::locale(std::locale::empty(),
+            new std::codecvt_utf16<wchar_t, 0x10ffff, std::little_endian>()));
+
         logFiles[logName] = ofs;
     }
     return true;
 }
+
+
+
+
 
 // Log message
 void Logger::log(const std::wstring& logName, const std::wstring& message) {
@@ -94,4 +118,8 @@ void DEBUGlogger(const std::wstring& message) {
 void IMEKeyInputlogger(const std::wstring& message) {
 	Logger::getInstance().setLogFile(L"IMEKeyInputlogger.txt");
 	Logger::getInstance().log(L"IMEKeyInputlogger.txt", message);
+}
+void IMElpmsglogger(const std::wstring& message) {
+	Logger::getInstance().setLogFile(L"IMElpmsglogger.txt");
+	Logger::getInstance().log(L"IMElpmsglogger.txt", message);
 }

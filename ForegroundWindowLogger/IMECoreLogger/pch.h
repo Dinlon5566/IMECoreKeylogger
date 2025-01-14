@@ -9,5 +9,6 @@
 
 // 請於此新增您要先行編譯的標頭
 #include "framework.h"
-#define DEBUG 1
+#define DEBUG 0
+#define DEBUGFILE 1
 #endif //PCH_H

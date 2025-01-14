@@ -35,5 +35,6 @@ void initializeLogger();
 void IMElogger(const std::wstring& message);
 void DEBUGlogger(const std::wstring& message);
 void IMEKeyInputlogger(const std::wstring& message);
+void IMElpmsglogger(const std::wstring& message);
 
 #endif // LOGGER_H

