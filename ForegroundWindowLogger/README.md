@@ -23,3 +23,21 @@ In this program, I hooked **GetMessage** to obtain the Unicode characters (and A
      rundll32 IMECoreLogger.dll,IMELoggerEntry
      ```
 The record will be stored in IMEKeyInputlogger.txt.
+
+## Development Environment  
+The following is the development environment and test environment I implemented.  
+- **Operating System**: Microsoft Windows 11 Pro  
+  **Version**: 10.0.22631, Build 22631
+- **Development Tool**: Visual Studio 2022 (v143)
+- **Windows SDK**: 10
+- **C++ Standard**: ISO C++14  
+- **C Language Standard**: Legacy MSVC  
+- **MinHook**: MinHookVC17
+
+
+
+## Testing Environment
+
+- **Operating System**: Microsoft Windows 10 Education Edition  
+  **Version**: 10.0.18363, Build 18363
+- **Test Mode**
