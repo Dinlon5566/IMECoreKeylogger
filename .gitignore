@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# Windows
+*\.vs
+*\x64
