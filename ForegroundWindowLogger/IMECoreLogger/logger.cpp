@@ -105,11 +105,6 @@ void initializeLogger() {
     }
 }
 
-void IMElogger(const std::wstring& message) {
-    Logger::getInstance().setLogFile(L"IMElogger.txt");
-    Logger::getInstance().log(L"IMElogger.txt", message);
-}
-
 void DEBUGlogger(const std::wstring& message) {
     Logger::getInstance().setLogFile(L"DEBUGlogger.txt");
     Logger::getInstance().log(L"DEBUGlogger.txt", message);
@@ -118,8 +113,4 @@ void DEBUGlogger(const std::wstring& message) {
 void IMEKeyInputlogger(const std::wstring& message) {
 	Logger::getInstance().setLogFile(L"IMEKeyInputlogger.txt");
 	Logger::getInstance().log(L"IMEKeyInputlogger.txt", message);
-}
-void IMElpmsglogger(const std::wstring& message) {
-	Logger::getInstance().setLogFile(L"IMElpmsglogger.txt");
-	Logger::getInstance().log(L"IMElpmsglogger.txt", message);
 }

