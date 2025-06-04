@@ -16,7 +16,7 @@ extern "C" __declspec(dllexport) void CALLBACK IMELoggerEntry(HWND hwnd, HINSTAN
 
 	if (!getDLLPath(dllPath)) {
 		if (DEBUG)
-			DEBUGlogger(L"ExplorerMain | Fail to get DLL path");
+			DEBUGlogger(L"IMELoggerEntry | Fail to get DLL path");
 		ExitProcess(-1);
 	}
 
@@ -31,7 +31,7 @@ extern "C" __declspec(dllexport) void CALLBACK IMELoggerEntry(HWND hwnd, HINSTAN
 
 	if (!getDLLPath(dllPath)) {
 		if (DEBUG)
-			DEBUGlogger(L"ExplorerMain | Fail to get DLL path");
+			DEBUGlogger(L"IMELoggerEntry | Fail to get DLL path");
 		exit(-1);
 	}
 	if (DEBUG) {
